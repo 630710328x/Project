@@ -1,0 +1,33 @@
+/* styles.css */
+
+#map {
+    height: 800px;
+}
+
+.oval-button {
+    background-color: #fdfdfd; /* White background */
+    border: 2px solid #000000; /* Black border */
+    color: black; /* Black text */
+    padding: 10px 20px; /* Some padding */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Inline block */
+    font-size: 16px; /* Increase font size */
+    margin: 4px 2px; /* Some margin */
+    cursor: pointer; /* Pointer/hand icon */
+    border-radius: 25px; /* Rounded corners */
+    transition: background-color 0.3s, border-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.oval-button:hover {
+    background-color: #dddddd; /* Grey background on hover */
+}
+
+
+
+
+
+
+
+
+
