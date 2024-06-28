@@ -1,57 +1,3 @@
-<?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Database connection details
-$host = 'localhost';
-$db = 'postgres';  // Replace 'your_database' with the actual database name
-$user = 'postgres'; // Replace with your actual database username
-$pass = 'root'; // Replace with your actual database password
-
-// Connect to PostgreSQL
-$conn = pg_connect("host=$host dbname=$db user=$user password=$pass");
-
-if (!$conn) {
-    die("Connection failed: " . pg_last_error());
-}
-
-// Function to fetch data from a specified table
-function fetch_family_data($conn, $table) {
-    // Validate the table name to prevent SQL injection
-    $allowed_tables = ['ratanakosin', 'lanchang'];
-    if (!in_array($table, $allowed_tables)) {
-        die("Invalid table name");
-    }
-
-    // Fetch family data from the specified table
-    $query = "SELECT id, parent_id, name, relationship FROM public.$table";
-    $result = pg_query($conn, $query);
-
-    if (!$result) {
-        die("Query failed: " . pg_last_error());
-    }
-
-    $family = array();
-    while ($row = pg_fetch_assoc($result)) {
-        $family[] = $row;
-    }
-
-    return $family;
-}
-
-// Determine which table to load initially
-$table = $_GET['table'] ?? 'ratanakosin';
-$family = fetch_family_data($conn, $table);
-pg_close($conn);
-
-// Encode data to JSON
-$family_json = json_encode($family);
-if ($family_json === false) {
-    die("JSON encoding failed: " . json_last_error_msg());
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,20 +8,44 @@ if ($family_json === false) {
     <style>
         #tree {
             width: 100%;
-            height: 90vh;
+            height: 95vh;
             border: 1px solid #ccc;
         }
         #controls {
             margin: 10px;
         }
+        header nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            gap: 10px;
+        }
+        header nav ul li {
+            display: inline;
+        }
+        header nav ul li a {
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #ccc;
+            border: 1px solid #999;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="family_tree.php">Family Tree</a></li>
+            </ul>
+        </nav>
+    </header>
     <div id="controls">
         <label for="tableSelect">Select Table: </label>
         <select id="tableSelect">
-            <option value="ratanakosin" <?php if ($table == 'ratanakosin') echo 'selected'; ?>>Ratanakosin</option>
-            <option value="lanchang" <?php if ($table == 'lanchang') echo 'selected'; ?>>Lanchang</option>
+            <option value="ratanakosin">Ratanakosin</option>
+            <option value="lanchang">Lanchang</option>
         </select>
     </div>
     <div id="tree"></div>
@@ -87,13 +57,13 @@ if ($family_json === false) {
 
             const loadFamilyData = (table) => {
                 fetch(`fetch_family_data.php?table=${table}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok ' + response.statusText);
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(familyData => {
+                        if (familyData.error) {
+                            console.error(familyData.error);
+                            return;
+                        }
+
                         const nodes = familyData.map(member => ({
                             id: member.id,
                             pid: member.parent_id,
